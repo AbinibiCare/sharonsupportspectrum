@@ -1,4 +1,5 @@
 ﻿import { Resend } from "resend";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -59,7 +60,7 @@ export async function POST(req: Request) {
       heading = "New NDIS Services Enquiry";
     }
 
-    const result = await resend.emails.send({
+    const emailResult = await resend.emails.send({
       from: "Sharon Support Spectrum <info@sharonsupportspectrum.com.au>",
       to: [
         "info@sharonsupportspectrum.com.au",
@@ -108,11 +109,33 @@ export async function POST(req: Request) {
       `,
     });
 
-    if ((result as { error?: { message?: string } })?.error) {
+    if ((emailResult as { error?: { message?: string } })?.error) {
       return Response.json(
         {
           ok: false,
-          error: result.error?.message || "Failed to send email.",
+          error: emailResult.error?.message || "Failed to send email.",
+        },
+        { status: 500 }
+      );
+    }
+
+    const { error: dbError } = await supabaseAdmin.from("crm_leads").insert({
+      name,
+      email,
+      phone,
+      enquiry_type: enquiryType,
+      service_area: serviceArea,
+      message,
+      status: "new",
+      source: "website",
+    });
+
+    if (dbError) {
+      console.error("Supabase lead insert error:", dbError);
+      return Response.json(
+        {
+          ok: false,
+          error: "Email sent, but CRM logging failed.",
         },
         { status: 500 }
       );
