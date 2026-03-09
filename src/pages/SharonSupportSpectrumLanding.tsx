@@ -77,6 +77,23 @@ export default function SharonSupportSpectrumLanding() {
     staffingMessage: "",
   });
 
+  const [intakeForm, setIntakeForm] = useState({
+    fullName: "",
+    preferredName: "",
+    email: "",
+    phone: "",
+    suburb: "",
+    planType: "Self-Managed",
+    supportCategory: "Daily Living Support",
+    startDate: "",
+    preferredDays: "",
+    preferredTimes: "",
+    culturalPreferences: "",
+    languagePreferences: "",
+    goals: "",
+    additionalNotes: "",
+  });
+
   const [sending, setSending] = useState(false);
   const [formFeedback, setFormFeedback] = useState<{
     type: "success" | "error" | null;
@@ -264,7 +281,6 @@ export default function SharonSupportSpectrumLanding() {
   async function onReferralSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSending(true);
-    setFormFeedback({ type: null, message: "" });
 
     try {
       await sendPayload({
@@ -313,7 +329,6 @@ ${referralForm.supportNeeds}
   async function onFacilitySubmit(e: React.FormEvent) {
     e.preventDefault();
     setSending(true);
-    setFormFeedback({ type: null, message: "" });
 
     try {
       await sendPayload({
@@ -343,6 +358,71 @@ ${facilityForm.staffingMessage}
         location: "",
         shiftsNeeded: "",
         staffingMessage: "",
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Network error. Please try again.";
+
+      setToast({
+        type: "error",
+        message,
+      });
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function onIntakeSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSending(true);
+
+    try {
+      await sendPayload({
+        name: intakeForm.fullName,
+        phone: intakeForm.phone,
+        email: intakeForm.email,
+        enquiryType: "NDIS Intake Form",
+        message: `
+Preferred Name: ${intakeForm.preferredName || "-"}
+Suburb: ${intakeForm.suburb}
+Plan Type: ${intakeForm.planType}
+Support Category: ${intakeForm.supportCategory}
+Preferred Start Date: ${intakeForm.startDate || "-"}
+Preferred Days: ${intakeForm.preferredDays || "-"}
+Preferred Times: ${intakeForm.preferredTimes || "-"}
+Cultural Preferences: ${intakeForm.culturalPreferences || "-"}
+Language Preferences: ${intakeForm.languagePreferences || "-"}
+
+Participant Goals:
+${intakeForm.goals}
+
+Additional Notes:
+${intakeForm.additionalNotes || "-"}
+        `.trim(),
+      });
+
+      setToast({
+        type: "success",
+        message: "NDIS intake form submitted successfully.",
+      });
+
+      setIntakeForm({
+        fullName: "",
+        preferredName: "",
+        email: "",
+        phone: "",
+        suburb: "",
+        planType: "Self-Managed",
+        supportCategory: "Daily Living Support",
+        startDate: "",
+        preferredDays: "",
+        preferredTimes: "",
+        culturalPreferences: "",
+        languagePreferences: "",
+        goals: "",
+        additionalNotes: "",
       });
     } catch (error) {
       const message =
@@ -432,8 +512,8 @@ ${facilityForm.staffingMessage}
             <a href="#services" className="text-sm text-white/70 hover:text-white">
               Services
             </a>
-            <a href="#aged-care" className="text-sm text-white/70 hover:text-white">
-              PCA Labour Hire
+            <a href="#ndis-intake" className="text-sm text-white/70 hover:text-white">
+              NDIS Intake
             </a>
             <a href="#referrals" className="text-sm text-white/70 hover:text-white">
               Referrals
@@ -450,10 +530,10 @@ ${facilityForm.staffingMessage}
             </a>
 
             <a
-              href="#contact"
+              href="#ndis-intake"
               className="rounded-xl bg-gradient-to-r from-amber-300 to-amber-100 px-4 py-2 text-sm font-semibold text-[#1A1305] hover:opacity-95"
             >
-              Enquire Now
+              Start Intake
             </a>
           </nav>
         </div>
@@ -650,6 +730,192 @@ ${facilityForm.staffingMessage}
         <div className="mx-auto max-w-6xl px-4 py-6 text-center text-sm text-white/70">
           Working toward compliance with the NDIS Practice Standards and Quality Indicators.
           All workers are identity verified, police checked, and trained in safe support practices.
+        </div>
+      </section>
+
+      <section id="ndis-intake" className="border-t border-white/10 bg-black/20">
+        <div className="mx-auto max-w-6xl px-4 py-14 reveal" data-reveal>
+          <div className="mx-auto max-w-4xl rounded-3xl border border-white/10 bg-white/5 p-7 sm:p-8">
+            <div className="text-center">
+              <h2 className="text-2xl font-semibold">NDIS Intake Form + Participant Goal Builder</h2>
+              <p className="mt-3 text-white/70">
+                Tell us about your support needs, preferences, and goals so we can match you with the right support approach.
+              </p>
+            </div>
+
+            <form onSubmit={onIntakeSubmit} className="mt-8 grid gap-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <input
+                  className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40"
+                  placeholder="Full name"
+                  value={intakeForm.fullName}
+                  onChange={(e) =>
+                    setIntakeForm({ ...intakeForm, fullName: e.target.value })
+                  }
+                  required
+                />
+                <input
+                  className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40"
+                  placeholder="Preferred name"
+                  value={intakeForm.preferredName}
+                  onChange={(e) =>
+                    setIntakeForm({ ...intakeForm, preferredName: e.target.value })
+                  }
+                />
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <input
+                  className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40"
+                  placeholder="Email"
+                  type="email"
+                  value={intakeForm.email}
+                  onChange={(e) =>
+                    setIntakeForm({ ...intakeForm, email: e.target.value })
+                  }
+                  required
+                />
+                <input
+                  className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40"
+                  placeholder="Phone"
+                  value={intakeForm.phone}
+                  onChange={(e) =>
+                    setIntakeForm({ ...intakeForm, phone: e.target.value })
+                  }
+                  required
+                />
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-3">
+                <input
+                  className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40"
+                  placeholder="Suburb"
+                  value={intakeForm.suburb}
+                  onChange={(e) =>
+                    setIntakeForm({ ...intakeForm, suburb: e.target.value })
+                  }
+                  required
+                />
+                <select
+                  className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none"
+                  value={intakeForm.planType}
+                  onChange={(e) =>
+                    setIntakeForm({ ...intakeForm, planType: e.target.value })
+                  }
+                >
+                  <option>Self-Managed</option>
+                  <option>Plan-Managed</option>
+                  <option>NDIA-Managed</option>
+                  <option>Not Sure Yet</option>
+                </select>
+                <select
+                  className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none"
+                  value={intakeForm.supportCategory}
+                  onChange={(e) =>
+                    setIntakeForm({
+                      ...intakeForm,
+                      supportCategory: e.target.value,
+                    })
+                  }
+                >
+                  <option>Daily Living Support</option>
+                  <option>Community Access</option>
+                  <option>Personal Care</option>
+                  <option>Domestic Assistance</option>
+                  <option>Psychosocial Support</option>
+                  <option>Multiple Supports</option>
+                </select>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-3">
+                <input
+                  className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none"
+                  type="date"
+                  value={intakeForm.startDate}
+                  onChange={(e) =>
+                    setIntakeForm({ ...intakeForm, startDate: e.target.value })
+                  }
+                />
+                <input
+                  className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40"
+                  placeholder="Preferred days"
+                  value={intakeForm.preferredDays}
+                  onChange={(e) =>
+                    setIntakeForm({
+                      ...intakeForm,
+                      preferredDays: e.target.value,
+                    })
+                  }
+                />
+                <input
+                  className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40"
+                  placeholder="Preferred times"
+                  value={intakeForm.preferredTimes}
+                  onChange={(e) =>
+                    setIntakeForm({
+                      ...intakeForm,
+                      preferredTimes: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <input
+                  className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40"
+                  placeholder="Cultural preferences"
+                  value={intakeForm.culturalPreferences}
+                  onChange={(e) =>
+                    setIntakeForm({
+                      ...intakeForm,
+                      culturalPreferences: e.target.value,
+                    })
+                  }
+                />
+                <input
+                  className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40"
+                  placeholder="Language preferences"
+                  value={intakeForm.languagePreferences}
+                  onChange={(e) =>
+                    setIntakeForm({
+                      ...intakeForm,
+                      languagePreferences: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <textarea
+                className="min-h-[150px] rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40"
+                placeholder="Participant goals: Tell us what matters most right now. For example: build independence, improve routine, access community activities, develop confidence, improve wellbeing, or reduce isolation."
+                value={intakeForm.goals}
+                onChange={(e) =>
+                  setIntakeForm({ ...intakeForm, goals: e.target.value })
+                }
+                required
+              />
+
+              <textarea
+                className="min-h-[120px] rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40"
+                placeholder="Additional notes: behaviour support considerations, mobility, communication style, preferred worker traits, etc."
+                value={intakeForm.additionalNotes}
+                onChange={(e) =>
+                  setIntakeForm({
+                    ...intakeForm,
+                    additionalNotes: e.target.value,
+                  })
+                }
+              />
+
+              <button
+                type="submit"
+                disabled={sending}
+                className="rounded-2xl bg-gradient-to-r from-amber-300 to-amber-100 px-6 py-3 text-sm font-semibold text-[#1A1305] disabled:opacity-60"
+              >
+                {sending ? "Sending..." : "Submit NDIS Intake"}
+              </button>
+            </form>
+          </div>
         </div>
       </section>
 

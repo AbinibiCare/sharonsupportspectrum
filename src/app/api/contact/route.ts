@@ -45,6 +45,9 @@ export async function POST(req: Request) {
     } else if (enquiryType === "Facility Staffing Request") {
       subject = `New Facility Staffing Request - ${name}`;
       heading = "New Facility Staffing Request";
+    } else if (enquiryType === "NDIS Intake Form") {
+      subject = `New NDIS Intake Form - ${name}`;
+      heading = "New NDIS Intake Form";
     } else if (enquiryType === "Aged Care Labour Hire (PCA Only)") {
       subject = `New PCA Labour Hire Enquiry - ${name}`;
       heading = "New PCA Labour Hire Enquiry";
