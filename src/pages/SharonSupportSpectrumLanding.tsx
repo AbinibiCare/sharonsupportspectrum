@@ -46,7 +46,7 @@ function useScrollReveal() {
   }, []);
 }
 
-export default function Page() {
+export default function SharonSupportSpectrumLanding() {
   useScrollReveal();
 
   const [form, setForm] = useState({
@@ -507,10 +507,31 @@ export default function Page() {
                 </div>
 
                 <p className="text-xs text-white/50">
-                  Your enquiry will be sent to {PRIMARY_EMAIL} and {SECONDARY_EMAIL}.
+                  Your enquiry will be sent to {PRIMARY_EMAIL} and{" "}
+                  {SECONDARY_EMAIL}.
                 </p>
               </form>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-t border-white/10 bg-black/20">
+        <div className="mx-auto max-w-6xl px-4 py-8">
+          <div className="grid gap-4 md:grid-cols-4">
+            {[
+              "NDIS Participant Support",
+              "Police Checked Support Workers",
+              "Culturally Inclusive Care",
+              "PCA Workforce for Facilities",
+            ].map((item) => (
+              <div
+                key={item}
+                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-center text-sm font-semibold text-white/85"
+              >
+                {item}
+              </div>
+            ))}
           </div>
         </div>
       </section>
