@@ -57,6 +57,26 @@ export default function SharonSupportSpectrumLanding() {
     message: "",
   });
 
+  const [referralForm, setReferralForm] = useState({
+    coordinatorName: "",
+    organisation: "",
+    participantName: "",
+    participantSuburb: "",
+    coordinatorEmail: "",
+    coordinatorPhone: "",
+    supportNeeds: "",
+  });
+
+  const [facilityForm, setFacilityForm] = useState({
+    facilityName: "",
+    contactPerson: "",
+    facilityEmail: "",
+    facilityPhone: "",
+    location: "",
+    shiftsNeeded: "",
+    staffingMessage: "",
+  });
+
   const [sending, setSending] = useState(false);
   const [formFeedback, setFormFeedback] = useState<{
     type: "success" | "error" | null;
@@ -172,41 +192,37 @@ export default function SharonSupportSpectrumLanding() {
     ? "Tip: Include facility name, shift date/time, location, and number of PCAs required."
     : "Tip: Include your suburb, support goals, preferred days/times, and plan type (self/plan-managed).";
 
+  async function sendPayload(payload: Record<string, unknown>) {
+    const response = await fetch("/api/contact", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...payload,
+        serviceArea: SERVICE_AREA,
+        primaryEmail: PRIMARY_EMAIL,
+        secondaryEmail: SECONDARY_EMAIL,
+        supportEmail: SUPPORT_EMAIL,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || "Message could not be sent. Please try again.");
+    }
+
+    return data;
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSending(true);
     setFormFeedback({ type: null, message: "" });
 
     try {
-      const response = await fetch("/api/contact", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...form,
-          serviceArea: SERVICE_AREA,
-          primaryEmail: PRIMARY_EMAIL,
-          secondaryEmail: SECONDARY_EMAIL,
-          supportEmail: SUPPORT_EMAIL,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.ok) {
-        const errorMessage =
-          data.error || "Message could not be sent. Please try again.";
-        setFormFeedback({
-          type: "error",
-          message: errorMessage,
-        });
-        setToast({
-          type: "error",
-          message: errorMessage,
-        });
-        return;
-      }
+      await sendPayload(form);
 
       setFormFeedback({
         type: "success",
@@ -226,14 +242,117 @@ export default function SharonSupportSpectrumLanding() {
         message: "",
       });
     } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Network error. Please try again.";
+
       setFormFeedback({
         type: "error",
-        message: "Network error. Please check your internet and try again.",
+        message,
       });
 
       setToast({
         type: "error",
-        message: "Network error. Please try again.",
+        message,
+      });
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function onReferralSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSending(true);
+    setFormFeedback({ type: null, message: "" });
+
+    try {
+      await sendPayload({
+        name: referralForm.coordinatorName,
+        phone: referralForm.coordinatorPhone,
+        email: referralForm.coordinatorEmail,
+        enquiryType: "Support Coordinator Referral",
+        message: `
+Organisation: ${referralForm.organisation}
+Participant Name: ${referralForm.participantName}
+Participant Suburb: ${referralForm.participantSuburb}
+Support Needs:
+${referralForm.supportNeeds}
+        `.trim(),
+      });
+
+      setToast({
+        type: "success",
+        message: "Referral submitted successfully.",
+      });
+
+      setReferralForm({
+        coordinatorName: "",
+        organisation: "",
+        participantName: "",
+        participantSuburb: "",
+        coordinatorEmail: "",
+        coordinatorPhone: "",
+        supportNeeds: "",
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Network error. Please try again.";
+
+      setToast({
+        type: "error",
+        message,
+      });
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function onFacilitySubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSending(true);
+    setFormFeedback({ type: null, message: "" });
+
+    try {
+      await sendPayload({
+        name: facilityForm.contactPerson,
+        phone: facilityForm.facilityPhone,
+        email: facilityForm.facilityEmail,
+        enquiryType: "Facility Staffing Request",
+        message: `
+Facility Name: ${facilityForm.facilityName}
+Location: ${facilityForm.location}
+Shifts Needed: ${facilityForm.shiftsNeeded}
+Request Details:
+${facilityForm.staffingMessage}
+        `.trim(),
+      });
+
+      setToast({
+        type: "success",
+        message: "Facility staffing request submitted successfully.",
+      });
+
+      setFacilityForm({
+        facilityName: "",
+        contactPerson: "",
+        facilityEmail: "",
+        facilityPhone: "",
+        location: "",
+        shiftsNeeded: "",
+        staffingMessage: "",
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Network error. Please try again.";
+
+      setToast({
+        type: "error",
+        message,
       });
     } finally {
       setSending(false);
@@ -305,9 +424,7 @@ export default function SharonSupportSpectrumLanding() {
               <div className="font-semibold tracking-wide text-white">
                 Sharon Support Spectrum
               </div>
-              <div className="text-xs text-white/70">
-                …care and support with heart
-              </div>
+              <div className="text-xs text-white/70">…care and support with heart</div>
             </div>
           </div>
 
@@ -318,8 +435,8 @@ export default function SharonSupportSpectrumLanding() {
             <a href="#aged-care" className="text-sm text-white/70 hover:text-white">
               PCA Labour Hire
             </a>
-            <a href="#about" className="text-sm text-white/70 hover:text-white">
-              About
+            <a href="#referrals" className="text-sm text-white/70 hover:text-white">
+              Referrals
             </a>
             <a href="#contact" className="text-sm text-white/70 hover:text-white">
               Contact
@@ -351,14 +468,12 @@ export default function SharonSupportSpectrumLanding() {
             </div>
 
             <h1 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl">
-              Premium care. <span className="text-amber-200">Professional</span>{" "}
-              workforce support.
+              Premium care. <span className="text-amber-200">Professional</span> workforce support.
             </h1>
 
             <p className="mt-4 text-base text-white/75 sm:text-lg">
-              Sharon Support Spectrum provides person-centred disability supports
-              and supplies qualified PCAs to aged care facilities—delivering
-              service with dignity, safety, and excellence.
+              Sharon Support Spectrum provides person-centred disability supports and supplies qualified PCAs to aged care
+              facilities—delivering service with dignity, safety, and excellence.
             </p>
 
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
@@ -422,9 +537,7 @@ export default function SharonSupportSpectrumLanding() {
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <div className="text-sm font-semibold text-white">
-                    Priority Enquiry
-                  </div>
+                  <div className="text-sm font-semibold text-white">Priority Enquiry</div>
                   <p className="mt-1 text-sm text-white/70">
                     Share your needs and we’ll respond as soon as possible.
                   </p>
@@ -464,9 +577,7 @@ export default function SharonSupportSpectrumLanding() {
                 <select
                   className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-amber-300/30"
                   value={form.enquiryType}
-                  onChange={(e) =>
-                    setForm({ ...form, enquiryType: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, enquiryType: e.target.value })}
                 >
                   <option>NDIS Services</option>
                   <option>Aged Care Labour Hire (PCA Only)</option>
@@ -507,8 +618,7 @@ export default function SharonSupportSpectrumLanding() {
                 </div>
 
                 <p className="text-xs text-white/50">
-                  Your enquiry will be sent to {PRIMARY_EMAIL} and{" "}
-                  {SECONDARY_EMAIL}.
+                  Your enquiry will be sent to {PRIMARY_EMAIL} and {SECONDARY_EMAIL}.
                 </p>
               </form>
             </div>
@@ -538,23 +648,18 @@ export default function SharonSupportSpectrumLanding() {
 
       <section className="border-t border-white/10 bg-black/30">
         <div className="mx-auto max-w-6xl px-4 py-6 text-center text-sm text-white/70">
-          Working toward compliance with the NDIS Practice Standards and Quality
-          Indicators. All workers are identity verified, police checked, and
-          trained in safe support practices.
+          Working toward compliance with the NDIS Practice Standards and Quality Indicators.
+          All workers are identity verified, police checked, and trained in safe support practices.
         </div>
       </section>
 
       <section id="about" className="border-t border-white/10 bg-black/20">
         <div className="mx-auto max-w-6xl px-4 py-14 reveal" data-reveal>
           <div className="max-w-2xl">
-            <h2 className="text-2xl font-semibold">
-              About Sharon Support Spectrum
-            </h2>
+            <h2 className="text-2xl font-semibold">About Sharon Support Spectrum</h2>
             <p className="mt-3 text-white/75">
-              We deliver respectful, culturally responsive, goal-focused
-              support. For aged care facilities, we provide dependable PCA
-              staffing support with strong communication, documentation, and
-              compliance practices.
+              We deliver respectful, culturally responsive, goal-focused support. For aged care facilities, we provide dependable
+              PCA staffing support with strong communication, documentation, and compliance practices.
             </p>
           </div>
 
@@ -581,8 +686,7 @@ export default function SharonSupportSpectrumLanding() {
             <div className="max-w-2xl">
               <h2 className="text-2xl font-semibold">Services</h2>
               <p className="mt-2 text-white/75">
-                Tailored supports designed around your goals, preferences, and
-                wellbeing.
+                Tailored supports designed around your goals, preferences, and wellbeing.
               </p>
             </div>
             <a
@@ -622,17 +726,182 @@ export default function SharonSupportSpectrumLanding() {
         </div>
       </section>
 
+      <section id="referrals" className="border-t border-white/10 bg-black/20">
+        <div className="mx-auto max-w-6xl px-4 py-14 reveal" data-reveal>
+          <div className="grid gap-8 md:grid-cols-2">
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-7">
+              <h2 className="text-2xl font-semibold">Support Coordinator Referral Form</h2>
+              <p className="mt-2 text-sm text-white/70">
+                Refer a participant and we will respond promptly to discuss suitable supports.
+              </p>
+
+              <form onSubmit={onReferralSubmit} className="mt-6 grid gap-3">
+                <input
+                  className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40"
+                  placeholder="Coordinator name"
+                  value={referralForm.coordinatorName}
+                  onChange={(e) =>
+                    setReferralForm({ ...referralForm, coordinatorName: e.target.value })
+                  }
+                  required
+                />
+                <input
+                  className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40"
+                  placeholder="Organisation"
+                  value={referralForm.organisation}
+                  onChange={(e) =>
+                    setReferralForm({ ...referralForm, organisation: e.target.value })
+                  }
+                  required
+                />
+                <input
+                  className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40"
+                  placeholder="Participant name"
+                  value={referralForm.participantName}
+                  onChange={(e) =>
+                    setReferralForm({ ...referralForm, participantName: e.target.value })
+                  }
+                  required
+                />
+                <input
+                  className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40"
+                  placeholder="Participant suburb"
+                  value={referralForm.participantSuburb}
+                  onChange={(e) =>
+                    setReferralForm({ ...referralForm, participantSuburb: e.target.value })
+                  }
+                  required
+                />
+                <input
+                  className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40"
+                  placeholder="Coordinator email"
+                  type="email"
+                  value={referralForm.coordinatorEmail}
+                  onChange={(e) =>
+                    setReferralForm({ ...referralForm, coordinatorEmail: e.target.value })
+                  }
+                  required
+                />
+                <input
+                  className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40"
+                  placeholder="Coordinator phone"
+                  value={referralForm.coordinatorPhone}
+                  onChange={(e) =>
+                    setReferralForm({ ...referralForm, coordinatorPhone: e.target.value })
+                  }
+                  required
+                />
+                <textarea
+                  className="min-h-[120px] rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40"
+                  placeholder="Support needs, goals, preferred start date, important notes..."
+                  value={referralForm.supportNeeds}
+                  onChange={(e) =>
+                    setReferralForm({ ...referralForm, supportNeeds: e.target.value })
+                  }
+                  required
+                />
+                <button
+                  type="submit"
+                  disabled={sending}
+                  className="rounded-2xl bg-gradient-to-r from-amber-300 to-amber-100 px-6 py-3 text-sm font-semibold text-[#1A1305] disabled:opacity-60"
+                >
+                  {sending ? "Sending..." : "Submit Referral"}
+                </button>
+              </form>
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-7">
+              <h2 className="text-2xl font-semibold">Facility Staffing Request Form</h2>
+              <p className="mt-2 text-sm text-white/70">
+                Request PCA staffing support for urgent cover or planned rosters.
+              </p>
+
+              <form onSubmit={onFacilitySubmit} className="mt-6 grid gap-3">
+                <input
+                  className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40"
+                  placeholder="Facility name"
+                  value={facilityForm.facilityName}
+                  onChange={(e) =>
+                    setFacilityForm({ ...facilityForm, facilityName: e.target.value })
+                  }
+                  required
+                />
+                <input
+                  className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40"
+                  placeholder="Contact person"
+                  value={facilityForm.contactPerson}
+                  onChange={(e) =>
+                    setFacilityForm({ ...facilityForm, contactPerson: e.target.value })
+                  }
+                  required
+                />
+                <input
+                  className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40"
+                  placeholder="Facility email"
+                  type="email"
+                  value={facilityForm.facilityEmail}
+                  onChange={(e) =>
+                    setFacilityForm({ ...facilityForm, facilityEmail: e.target.value })
+                  }
+                  required
+                />
+                <input
+                  className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40"
+                  placeholder="Facility phone"
+                  value={facilityForm.facilityPhone}
+                  onChange={(e) =>
+                    setFacilityForm({ ...facilityForm, facilityPhone: e.target.value })
+                  }
+                  required
+                />
+                <input
+                  className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40"
+                  placeholder="Location"
+                  value={facilityForm.location}
+                  onChange={(e) =>
+                    setFacilityForm({ ...facilityForm, location: e.target.value })
+                  }
+                  required
+                />
+                <input
+                  className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40"
+                  placeholder="Shifts needed / staffing requirement"
+                  value={facilityForm.shiftsNeeded}
+                  onChange={(e) =>
+                    setFacilityForm({ ...facilityForm, shiftsNeeded: e.target.value })
+                  }
+                  required
+                />
+                <textarea
+                  className="min-h-[120px] rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40"
+                  placeholder="Tell us the dates, times, number of PCAs required, and any special requirements..."
+                  value={facilityForm.staffingMessage}
+                  onChange={(e) =>
+                    setFacilityForm({ ...facilityForm, staffingMessage: e.target.value })
+                  }
+                  required
+                />
+                <button
+                  type="submit"
+                  disabled={sending}
+                  className="rounded-2xl bg-gradient-to-r from-amber-300 to-amber-100 px-6 py-3 text-sm font-semibold text-[#1A1305] disabled:opacity-60"
+                >
+                  {sending ? "Sending..." : "Request Staffing Support"}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section id="aged-care" className="border-t border-white/10 bg-black/20">
         <div className="mx-auto max-w-6xl px-4 py-14 reveal" data-reveal>
           <div className="grid gap-6 md:grid-cols-2 md:items-start">
             <div className="max-w-3xl">
-              <h2 className="text-2xl font-semibold">
-                Aged Care Labour Hire (PCA Only)
-              </h2>
+              <h2 className="text-2xl font-semibold">Aged Care Labour Hire (PCA Only)</h2>
               <p className="mt-3 text-white/75">
-                We supply qualified PCAs across {SERVICE_AREA}—supporting urgent
-                cover and planned roster needs. Rate card and compliance pack
-                available on request.
+                We supply qualified PCAs across {SERVICE_AREA}—supporting urgent cover and planned roster needs. Rate card and
+                compliance pack available on request.
               </p>
 
               <div className="mt-6 rounded-3xl border border-white/10 bg-white/5 p-6">
@@ -671,15 +940,14 @@ export default function SharonSupportSpectrumLanding() {
               <div>
                 <div className="text-lg font-semibold">Facility Manager?</div>
                 <div className="text-sm text-white/70">
-                  Request our labour hire pack (capability statement +
-                  compliance + rate card).
+                  Request our labour hire pack (capability statement + compliance + rate card).
                 </div>
               </div>
               <a
-                href="#contact"
+                href="#referrals"
                 className="rounded-2xl bg-gradient-to-r from-amber-300 to-amber-100 px-6 py-3 text-center text-sm font-semibold text-[#1A1305] hover:opacity-95"
               >
-                Get Labour Hire Pack
+                Submit Staffing Request
               </a>
             </div>
           </div>
@@ -715,10 +983,7 @@ export default function SharonSupportSpectrumLanding() {
               <div className="mt-7 grid gap-3 text-sm text-white/75">
                 <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
                   <div className="font-semibold text-white">Phone</div>
-                  <a
-                    className="mt-1 inline-block hover:text-white"
-                    href={`tel:${PHONE}`}
-                  >
+                  <a className="mt-1 inline-block hover:text-white" href={`tel:${PHONE}`}>
                     {PHONE_PRETTY}
                   </a>
                 </div>
@@ -782,9 +1047,7 @@ export default function SharonSupportSpectrumLanding() {
                 <select
                   className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-amber-300/30"
                   value={form.enquiryType}
-                  onChange={(e) =>
-                    setForm({ ...form, enquiryType: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, enquiryType: e.target.value })}
                 >
                   <option>NDIS Services</option>
                   <option>Aged Care Labour Hire (PCA Only)</option>
@@ -830,8 +1093,7 @@ export default function SharonSupportSpectrumLanding() {
         <div className="mx-auto max-w-6xl px-4 py-12 text-center">
           <h2 className="text-2xl font-semibold">Join Our Support Team</h2>
           <p className="mt-3 text-white/70">
-            We are always looking for compassionate support workers and PCAs who
-            want to make a difference in people's lives.
+            We are always looking for compassionate support workers and PCAs who want to make a difference in people's lives.
           </p>
 
           <a
@@ -847,8 +1109,7 @@ export default function SharonSupportSpectrumLanding() {
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-8 text-sm text-white/60 md:flex-row md:items-center md:justify-between">
           <div>© 2026 Sharon Support Spectrum. All rights reserved.</div>
           <div className="break-all">
-            Phone: {PHONE_PRETTY} • Email: {PRIMARY_EMAIL} • Alternate:{" "}
-            {SECONDARY_EMAIL} • Service Area: {SERVICE_AREA}
+            Phone: {PHONE_PRETTY} • Email: {PRIMARY_EMAIL} • Alternate: {SECONDARY_EMAIL} • Service Area: {SERVICE_AREA}
           </div>
         </div>
       </footer>
