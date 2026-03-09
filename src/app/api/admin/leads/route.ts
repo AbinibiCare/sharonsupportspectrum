@@ -1,7 +1,11 @@
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
+
     const adminKey = req.headers.get("x-admin-key");
     const expectedKey = process.env.ADMIN_DASHBOARD_KEY;
 

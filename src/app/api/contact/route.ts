@@ -1,5 +1,7 @@
 ﻿import { Resend } from "resend";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+
+export const dynamic = "force-dynamic";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -29,10 +31,7 @@ export async function POST(req: Request) {
 
     if (!name || !email || !message) {
       return Response.json(
-        {
-          ok: false,
-          error: "Name, email, and message are required.",
-        },
+        { ok: false, error: "Name, email, and message are required." },
         { status: 400 }
       );
     }
@@ -66,7 +65,8 @@ export async function POST(req: Request) {
         "info@sharonsupportspectrum.com.au",
         "info@sharonsupportservices.services",
       ],
-      reply_to: email, subject,
+      reply_to: email,
+      subject,
       html: `
         <div style="font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #111827;">
           <h2 style="margin-bottom: 16px;">${escapeHtml(heading)}</h2>
@@ -110,13 +110,13 @@ export async function POST(req: Request) {
 
     if ((emailResult as { error?: { message?: string } })?.error) {
       return Response.json(
-        {
-          ok: false,
-          error: emailResult.error?.message || "Failed to send email.",
-        },
+        { ok: false, error: emailResult.error?.message || "Failed to send email." },
         { status: 500 }
       );
     }
+
+    // Create Supabase client lazily (fixes Vercel build issue)
+    const supabaseAdmin = getSupabaseAdmin();
 
     const { error: dbError } = await supabaseAdmin.from("crm_leads").insert({
       name,
@@ -132,23 +132,18 @@ export async function POST(req: Request) {
     if (dbError) {
       console.error("Supabase lead insert error:", dbError);
       return Response.json(
-        {
-          ok: false,
-          error: "Email sent, but CRM logging failed.",
-        },
+        { ok: false, error: "Email sent, but CRM logging failed." },
         { status: 500 }
       );
     }
 
     return Response.json({ ok: true });
+
   } catch (error) {
     console.error("Contact form error:", error);
 
     return Response.json(
-      {
-        ok: false,
-        error: "Something went wrong while sending your message.",
-      },
+      { ok: false, error: "Something went wrong while sending your message." },
       { status: 500 }
     );
   }
