@@ -15,11 +15,16 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Sharon Support Spectrum",
-  description: "NDIS Disability Support and PCA Labour Hire in Adelaide, Gawler & Murray Bridge.",
+  title: "Sharon Support Spectrum | NDIS Disability Support Adelaide",
+  description:
+    "NDIS disability support services and PCA labour hire in Adelaide, Gawler and Murray Bridge.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <body className="font-[var(--font-inter)]">{children}</body>

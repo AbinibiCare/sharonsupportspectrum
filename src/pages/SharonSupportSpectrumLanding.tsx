@@ -536,6 +536,14 @@ export default function SharonSupportSpectrumLanding() {
         </div>
       </section>
 
+      <section className="border-t border-white/10 bg-black/30">
+        <div className="mx-auto max-w-6xl px-4 py-6 text-center text-sm text-white/70">
+          Working toward compliance with the NDIS Practice Standards and Quality
+          Indicators. All workers are identity verified, police checked, and
+          trained in safe support practices.
+        </div>
+      </section>
+
       <section id="about" className="border-t border-white/10 bg-black/20">
         <div className="mx-auto max-w-6xl px-4 py-14 reveal" data-reveal>
           <div className="max-w-2xl">
@@ -707,7 +715,10 @@ export default function SharonSupportSpectrumLanding() {
               <div className="mt-7 grid gap-3 text-sm text-white/75">
                 <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
                   <div className="font-semibold text-white">Phone</div>
-                  <a className="mt-1 inline-block hover:text-white" href={`tel:${PHONE}`}>
+                  <a
+                    className="mt-1 inline-block hover:text-white"
+                    href={`tel:${PHONE}`}
+                  >
                     {PHONE_PRETTY}
                   </a>
                 </div>
@@ -812,6 +823,23 @@ export default function SharonSupportSpectrumLanding() {
               </form>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="border-t border-white/10 bg-black/20">
+        <div className="mx-auto max-w-6xl px-4 py-12 text-center">
+          <h2 className="text-2xl font-semibold">Join Our Support Team</h2>
+          <p className="mt-3 text-white/70">
+            We are always looking for compassionate support workers and PCAs who
+            want to make a difference in people's lives.
+          </p>
+
+          <a
+            href="#contact"
+            className="mt-6 inline-block rounded-xl bg-gradient-to-r from-amber-300 to-amber-100 px-6 py-3 font-semibold text-[#1A1305]"
+          >
+            Apply to Join Our Team
+          </a>
         </div>
       </section>
 
