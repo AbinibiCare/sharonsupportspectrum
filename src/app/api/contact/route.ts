@@ -66,8 +66,7 @@ export async function POST(req: Request) {
         "info@sharonsupportspectrum.com.au",
         "info@sharonsupportservices.services",
       ],
-      replyTo: email,
-      subject,
+      reply_to: email, subject,
       html: `
         <div style="font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #111827;">
           <h2 style="margin-bottom: 16px;">${escapeHtml(heading)}</h2>
